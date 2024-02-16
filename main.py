@@ -69,22 +69,71 @@ class Unit(pygame.sprite.Sprite):
 def combat(r, b):
     red_support = 0
     blue_support = 0
+    red_pushed = get_push_square(b, r)
+    blue_pushed = get_push_square(r, b)
+
+    if blue_pushed != "rout":
+        if blue_pushed.occupied:
+            for unit in units:
+                if unit.pos == blue_pushed.pos:
+                    if unit.team == "red":
+                        red_support += 3
+                    elif unit.team == "blue":
+                        red_support += 1
+
+    if red_pushed != "rout":
+        if red_pushed.occupied:
+            for unit in units:
+                if unit.pos == red_pushed.pos:
+                    if unit.team == "blue":
+                        blue_support += 3
+                    elif unit.team == "red":
+                        blue_support += 1
+
     for unit in red:
-        if abs(unit.pos[0] - r.pos[0]) == 1 and abs(unit.pos[1] - r.pos[1]) == 1:
+        if (abs(unit.pos[0] - r.pos[0]) == 1 or abs(unit.pos[0] - b.pos[0]) == 0) and (abs(unit.pos[1] - r.pos[1]) == 1 or abs(unit.pos[1] - b.pos[1]) == 0):
             red_support += 1
     for unit in blue:
         if abs(unit.pos[0] - b.pos[0]) == 1 and abs(unit.pos[1] - b.pos[1]) == 1:
             blue_support += 1
 
+
+
     result = random.randint(1,10)
-    print(result)
     result += blue_support
+    print(blue_support - red_support)
     result -= red_support
-    print(result)
     if result > 8:
         r.kill()
     elif result < 3:
         b.kill()
+    elif result > 5:
+        if red_pushed == "rout":
+            r.kill()
+        else:
+            if not red_pushed.occupied:
+                r.move(red_pushed.pos[0],red_pushed.pos[1])
+    else:
+        if blue_pushed == "rout":
+            b.kill()
+        else:
+            if not red_pushed.occupied:
+                b.move(blue_pushed.pos[0],blue_pushed.pos[1])
+
+def get_push_square(w, l):
+    pushx = w.pos[0] - l.pos[0]
+    print(pushx)
+    pushy = w.pos[1] - l.pos[1]
+    print(pushy)
+    newx = l.pos[0] - pushx
+    newy = l.pos[1] - pushy
+    if newx < 0 or newx > 5 or newy < 0 or newy > 5:
+        return "rout"
+    for square in grid:
+        if square.pos == (newx, newy):
+            return square
+        
+                    
 
 def check_ready_units(group):
     ready = 0
@@ -139,10 +188,14 @@ objects.add(grid)
 red = pygame.sprite.Group()
 for i in range(6):
     red.add(Unit("Red",i,0,"red"))
+for i in range(6):
+    red.add(Unit("Red",i,1,"red"))
 
 blue = pygame.sprite.Group()
 for i in range(6):
     blue.add(Unit("Blue",i,5,"blue"))
+for i in range(6):
+    blue.add(Unit("Blue",i,4,"blue"))
 
 
 units = pygame.sprite.Group()
@@ -247,7 +300,7 @@ while running:
     if activations == 0:
         for b in blue:
             for r in red:
-                if abs(r.pos[0] - b.pos[0]) == 1 and abs(r.pos[1] - b.pos[1]) == 1:
+                if (abs(r.pos[0] - b.pos[0]) == 1 or abs(r.pos[0] - b.pos[0]) == 0) and (abs(r.pos[1] - b.pos[1]) == 1 or abs(r.pos[1] - b.pos[1]) == 0):
                     combat(r, b)
         for unit in units:
             unit.ready = True
