@@ -117,7 +117,7 @@ def combat(r, b):
         if blue_pushed == "rout":
             b.kill()
         else:
-            if not red_pushed.occupied:
+            if not blue_pushed.occupied:
                 b.move(blue_pushed.pos[0],blue_pushed.pos[1])
 
 def get_push_square(w, l):
